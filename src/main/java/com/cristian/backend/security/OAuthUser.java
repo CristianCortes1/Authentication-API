@@ -1,7 +1,9 @@
 package com.cristian.backend.security;
 
+import lombok.Getter;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+@Getter
 public class OAuthUser {
 
     private final String email;
@@ -14,15 +16,4 @@ public class OAuthUser {
         this.lastName = user.getAttribute("family_name");
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
 }

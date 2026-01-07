@@ -110,28 +110,7 @@
             <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
-
-
     </dependencies>
-    <!--	<dependencyManagement>-->
-    <!--		<dependencies>-->
-    <!--			<dependency>-->
-    <!--				<groupId>org.springframework.cloud</groupId>-->
-    <!--				<artifactId>spring-cloud-dependencies</artifactId>-->
-    <!--				<version>${spring-cloud.version}</version>-->
-    <!--				<type>pom</type>-->
-    <!--				<scope>import</scope>-->
-    <!--			</dependency>-->
-    <!--&lt;!&ndash;			<dependency>&ndash;&gt;-->
-    <!--&lt;!&ndash;				<groupId>com.vmware.tanzu.springcloudgateway.extensions</groupId>&ndash;&gt;-->
-    <!--&lt;!&ndash;				<artifactId>extensions-bom</artifactId>&ndash;&gt;-->
-    <!--&lt;!&ndash;				<version>${tanzu-scg-extensions.version}</version>&ndash;&gt;-->
-    <!--&lt;!&ndash;				<type>pom</type>&ndash;&gt;-->
-    <!--&lt;!&ndash;				<scope>import</scope>&ndash;&gt;-->
-    <!--&lt;!&ndash;			</dependency>&ndash;&gt;-->
-    <!--		</dependencies>-->
-    <!--	</dependencyManagement>-->
-
     <build>
         <plugins>
             <plugin>

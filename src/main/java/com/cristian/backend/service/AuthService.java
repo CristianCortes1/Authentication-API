@@ -69,14 +69,14 @@ public class AuthService {
                 .firstName(savedUser.getFirstName())
                 .lastName(savedUser.getLastName())
                 .success(true)
-                .message("Usuario registrado exitosamente. Por favor verifica tu email.")
+                .message("User registered successfully. Please verify your email.")
                 .build();
     }
 
     public AuthResponse login(LoginRequest request) {
         String identifier = request.getUsernameOrEmail();
 
-        User user = null;
+        User user;
         String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
 
         if (identifier.matches(emailRegex)) {
@@ -88,21 +88,21 @@ public class AuthService {
         if (user == null) {
             return AuthResponse.builder()
                     .success(false)
-                    .message("Usuario no encontrado")
+                    .message("User not found")
                     .build();
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             return AuthResponse.builder()
                     .success(false)
-                    .message("Contraseña incorrecta")
+                    .message("Incorrect password")
                     .build();
         }
 
         if (!user.getEnabled()) {
             return AuthResponse.builder()
                     .success(false)
-                    .message("Por favor verifica tu email antes de iniciar sesión")
+                    .message("Please verify your email before logging in")
                     .build();
         }
 
@@ -113,7 +113,7 @@ public class AuthService {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .success(true)
-                .message("Inicio de sesión exitoso")
+                .message("Login successful")
                 .build();
     }
 
@@ -122,7 +122,7 @@ public class AuthService {
         if (!jwtService.validateVerificationToken(token)) {
             return AuthResponse.builder()
                     .success(false)
-                    .message("Token de verificación inválido o expirado")
+                    .message("Verification token invalid or expired")
                     .build();
         }
 
@@ -133,7 +133,7 @@ public class AuthService {
         } catch (Exception e) {
             return AuthResponse.builder()
                     .success(false)
-                    .message("Error al procesar el token")
+                    .message("Error extracting email from token")
                     .build();
         }
 
@@ -144,7 +144,7 @@ public class AuthService {
         if (user == null) {
             return AuthResponse.builder()
                     .success(false)
-                    .message("Token de verificación inválido")
+                    .message("Invalid verification token")
                     .build();
         }
 
@@ -152,14 +152,14 @@ public class AuthService {
         if (!user.getEmail().equals(email)) {
             return AuthResponse.builder()
                     .success(false)
-                    .message("Token de verificación no coincide con el usuario")
+                    .message("Token email does not match user email")
                     .build();
         }
 
         if (user.getEnabled()) {
             return AuthResponse.builder()
                     .success(true)
-                    .message("El email ya fue verificado anteriormente")
+                    .message("Email already verified")
                     .build();
         }
 
@@ -170,7 +170,7 @@ public class AuthService {
         try {
             emailService.sendWelcomeEmail(user.getEmail(), user.getUsername());
         } catch (Exception e) {
-            System.err.println("Error al enviar email de bienvenida: " + e.getMessage());
+            System.err.println("Error sending welcome message " + e.getMessage());
         }
 
         return AuthResponse.builder()
@@ -180,7 +180,7 @@ public class AuthService {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .success(true)
-                .message("Email verificado exitosamente")
+                .message("Email verified successfully")
                 .build();
     }
 }
