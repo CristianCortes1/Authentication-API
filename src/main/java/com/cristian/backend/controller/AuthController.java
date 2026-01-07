@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-
+/**
+ * ejemplo con curl para registrar un usuario
+ * curl -v -X POST http://localhost:8080/api/auth/register -H "Content-Type: application/json" -d '{"username":"cristian","email":"bejaranno05cortes@gmail.com","password":"123456","firstName":"Cristian","lastName":"Cortes"}'
+ */
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse response = authService.register(request);

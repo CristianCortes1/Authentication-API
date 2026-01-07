@@ -122,6 +122,7 @@ public class EmailService {
     }
 
     public void sendVerificationEmail(@NotBlank(message = "El email es requerido") @Email(message = "El email debe ser válido") String email, @NotBlank(message = "El nombre de usuario es requerido") String username, String verificationToken) {
+        //cambiar la URL por la del frontend cuando esté en producción
         String verificationUrl = "http://localhost:8080/api/auth/verify?token=" + verificationToken;
         String subject = "Confirma tu cuenta - E-commerce App";
 
