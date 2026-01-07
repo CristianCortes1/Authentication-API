@@ -1,0 +1,54 @@
+# Application Configuration Template
+# Copia este archivo como application.properties y completa con tus valores reales
+# NUNCA subas application.properties con credenciales reales a GitHub
+
+spring.application.name=backend
+
+# Database configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/NOMBRE_DE_TU_BD
+spring.datasource.username=TU_USUARIO_POSTGRES
+spring.datasource.password=TU_PASSWORD_POSTGRES
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+
+# Server configuration
+server.port=8080
+server.servlet.context-path=/
+
+# Logging
+logging.level.root=INFO
+logging.level.com.cristiancortes.backend=DEBUG
+
+# Security
+spring.security.user.name=admin
+spring.security.user.password=GENERA_UN_HASH_BCRYPT
+spring.security.user.roles=ADMIN
+
+# Mail configuration
+spring.mail.default-encoding=UTF-8
+spring.mail.host=live.smtp.mailtrap.io
+spring.mail.port=587
+spring.mail.username=smtp@mailtrap.io
+spring.mail.password=TU_PASSWORD_MAILTRAP
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.localhost=localhost
+
+# JWT configuration
+# Genera una clave secreta segura (mínimo 256 bits en Base64)
+jwt.secret=TU_SECRET_KEY_BASE64_AQUI
+# Tiempo de expiración en milisegundos (86400000 = 24 horas)
+jwt.expiration=86400000
+# Tiempo de expiración del token de verificación (86400000 = 24 horas)
+jwt.verification.expiration=86400000
+
+# Mailtrap Configuration (para desarrollo)
+# Ver MAILTRAP_SETUP.md para instrucciones detalladas
+mailtrap.api.token=TU_MAILTRAP_API_TOKEN_AQUI
+app.mail.from=hello@demomailtrap.com
+app.mail.from-name=E-commerce App
+# Email de destino para desarrollo (debe estar verificado en Mailtrap)
+app.mail.dev-recipient=TU_EMAIL_VERIFICADO@gmail.com
+
