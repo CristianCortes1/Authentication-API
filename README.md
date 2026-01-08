@@ -53,7 +53,7 @@
 | Category | Technology |
 |----------|------------|
 | **Framework** | Spring Boot 3.5.0 |
-| **Language** | Java 21 |
+| **Language** | Java 17 |
 | **Security** | Spring Security 6, JWT, OAuth2 |
 | **Database** | PostgreSQL + Spring Data JPA |
 | **Documentation** | SpringDoc OpenAPI 3 (Swagger) |
@@ -67,7 +67,7 @@
 
 ### Prerequisites
 
-- ☕ **Java 21** or higher
+- ☕ **Java 17** or higher
 - 🐘 **PostgreSQL** 14 or higher
 - 📦 **Maven** 3.8 or higher
 - 🔑 **Google OAuth2 Credentials** (optional, for social login)
