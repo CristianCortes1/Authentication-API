@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Spring%20Boot-3.5.0-brightgreen?style=for-the-badge&logo=spring-boot" alt="Spring Boot"/>
-  <img src="https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk" alt="Java"/>
+  <img src="https://img.shields.io/badge/Java-17-orange?style=for-the-badge&logo=openjdk" alt="Java"/>
   <img src="https://img.shields.io/badge/JWT-Authentication-blue?style=for-the-badge&logo=json-web-tokens" alt="JWT"/>
   <img src="https://img.shields.io/badge/OAuth2-Google-red?style=for-the-badge&logo=google" alt="OAuth2"/>
 </p>
