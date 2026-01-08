@@ -130,7 +130,6 @@ public class EmailService {
                             <h1>Verify Your Account</h1>
                             <p class="subtitle">Secure Authentication API</p>
                         </div>
-                        
                         <p>Hello <strong>%s</strong>,</p>
                         <p>Thank you for registering with our Authentication API. To complete your registration and secure your account, please verify your email address.</p>
 
@@ -257,15 +256,11 @@ public class EmailService {
                             <div class="icon">✅</div>
                             <h1>Account Verified!</h1>
                         </div>
-                        
                         <p>Hello <strong>%s</strong>,</p>
-                        
                         <div class="success-box">
                             <p>🎉 Your account has been successfully verified!</p>
                         </div>
-                        
                         <p>You now have full access to our Authentication API. Your account is secured with industry-standard protocols.</p>
-                        
                         <div class="features">
                             <h3>🔐 Security Features Enabled:</h3>
                             <ul>
@@ -275,11 +270,8 @@ public class EmailService {
                                 <li>Role-Based Access Control</li>
                             </ul>
                         </div>
-                        
                         <p>Thank you for choosing our platform!</p>
-                        
                         <p style="margin-top: 30px;">Best regards,<br><strong>The Authentication API Team</strong></p>
-                        
                         <div class="footer">
                             <p>🔒 Secured with JWT & OAuth 2.0</p>
                             <p>&copy; 2026 Authentication API. All rights reserved.</p>
