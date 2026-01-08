@@ -6,6 +6,7 @@ import com.cristian.backend.dto.RegisterRequest;
 import com.cristian.backend.model.User;
 import com.cristian.backend.repository.UserRepository;
 import com.cristian.backend.security.JwtService;
+import com.cristian.backend.exception.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,19 +21,11 @@ public class AuthService {
     private final JwtService jwtService;
 
     public AuthResponse register(RegisterRequest request) {
-        // Verificar si el usuario ya existe
         if (userRepository.existsByUsername(request.getUsername())) {
-            return AuthResponse.builder()
-                    .success(false)
-                    .message("El nombre de usuario ya existe")
-                    .build();
+            throw new UsernameAlreadyExistsException();
         }
-
         if (userRepository.existsByEmail(request.getEmail())) {
-            return AuthResponse.builder()
-                    .success(false)
-                    .message("El email ya está registrado")
-                    .build();
+            throw new EmailAlreadyRegisteredException();
         }
 
         // Generar token de verificación JWT
@@ -59,7 +52,7 @@ public class AuthService {
             );
         } catch (Exception e) {
 
-            System.err.println("Error al enviar email de verificación: " + e.getMessage());
+            System.err.println("Error sending verification email: " + e.getMessage());
         }
 
         return AuthResponse.builder()
@@ -86,24 +79,15 @@ public class AuthService {
         }
 
         if (user == null) {
-            return AuthResponse.builder()
-                    .success(false)
-                    .message("User not found")
-                    .build();
+            throw new UserNotFoundException();
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            return AuthResponse.builder()
-                    .success(false)
-                    .message("Incorrect password")
-                    .build();
+            throw new IncorrectPasswordException();
         }
 
         if (!user.getEnabled()) {
-            return AuthResponse.builder()
-                    .success(false)
-                    .message("Please verify your email before logging in")
-                    .build();
+            throw new EmailNotVerifiedException();
         }
 
         return AuthResponse.builder()
@@ -118,42 +102,26 @@ public class AuthService {
     }
 
     public AuthResponse verifyEmail(String token) {
-        // Validar el token JWT
         if (!jwtService.validateVerificationToken(token)) {
-            return AuthResponse.builder()
-                    .success(false)
-                    .message("Verification token invalid or expired")
-                    .build();
+            throw new VerificationTokenInvalidException();
         }
 
-        // Extraer el email del token
         String email;
         try {
             email = jwtService.extractSubject(token);
         } catch (Exception e) {
-            return AuthResponse.builder()
-                    .success(false)
-                    .message("Error extracting email from token")
-                    .build();
+            throw new ErrorExtractingEmailException();
         }
 
-        // Buscar el usuario por email y token
         User user = userRepository.findByVerificationToken(token)
                 .orElse(null);
 
         if (user == null) {
-            return AuthResponse.builder()
-                    .success(false)
-                    .message("Invalid verification token")
-                    .build();
+            throw new InvalidVerificationTokenException();
         }
 
-        // Verificar que el email del token coincida con el email del usuario
         if (!user.getEmail().equals(email)) {
-            return AuthResponse.builder()
-                    .success(false)
-                    .message("Token email does not match user email")
-                    .build();
+            throw new TokenEmailDoesNotMatchException();
         }
 
         if (user.getEnabled()) {
@@ -184,4 +152,3 @@ public class AuthService {
                 .build();
     }
 }
-

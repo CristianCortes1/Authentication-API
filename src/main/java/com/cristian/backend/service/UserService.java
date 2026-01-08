@@ -18,7 +18,8 @@ public class UserService {
                 .orElseGet(() -> {
                     User user = new User();
                     //random username generation
-                    user.setUsername(oauthUser.getFirstName().toLowerCase() + "." + oauthUser.getLastName().toLowerCase() + System.currentTimeMillis() % 1000 );
+                    user.setUsername(oauthUser.getFirstName().toLowerCase() + "."
+                            + oauthUser.getLastName().toLowerCase() + System.currentTimeMillis() % 1000 );
                     user.setEmail(oauthUser.getEmail());
                     user.setFirstName(oauthUser.getFirstName());
                     user.setLastName(oauthUser.getLastName());

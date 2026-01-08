@@ -103,22 +103,9 @@ public class JwtService {
      */
     public boolean isTokenExpired(String token) {
         try {
-            return !extractExpiration(token).before(new Date());
+            return extractExpiration(token).before(new Date());
         } catch (Exception e) {
-            return false;
-        }
-    }
-
-    /**
-     * Valida el token JWT
-     */
-    public boolean validateToken(String token, String subject) {
-        try {
-            final String tokenSubject = extractSubject(token);
-            return (tokenSubject.equals(subject) && isTokenExpired(token));
-        } catch (Exception e) {
-            log.error("Error al validar token: {}", e.getMessage());
-            return false;
+            return true; // Si hay un error, consideramos que el token está expirado
         }
     }
 
@@ -129,7 +116,7 @@ public class JwtService {
         try {
             Claims claims = extractAllClaims(token);
             String type = claims.get("type", String.class);
-            return "verification".equals(type) && isTokenExpired(token);
+            return "verification".equals(type) && !isTokenExpired(token);
         } catch (Exception e) {
             log.error("Error al validar token de verificación: {}", e.getMessage());
             return false;
