@@ -16,12 +16,6 @@ import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@TestPropertySource(properties = {
-    "jwt.secret=U1YzVWdmVlhOcEo4dkd5VGlxWjhsOWcyRWpFZlIzUWxTdFc0TlpoMWg1dVEyTjBXVjRJSUI4aFNVQT09",
-    "jwt.expiration=3600000",
-    "jwt.verification.expiration=86400000"
-})
 @DisplayName("JwtService Test Suite")
 class JwtServiceTest {
 
