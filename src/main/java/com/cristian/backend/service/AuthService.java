@@ -90,12 +90,17 @@ public class AuthService {
             throw new EmailNotVerifiedException();
         }
 
+        // Generar token con el rol del usuario
+        String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
+
         return AuthResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
+                .token(token)
+                .role(user.getRole().name())
                 .success(true)
                 .message("Login successful")
                 .build();

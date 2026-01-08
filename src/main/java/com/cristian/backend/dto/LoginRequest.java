@@ -1,5 +1,6 @@
 package com.cristian.backend.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,12 +11,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Login request with user credentials")
 public class LoginRequest {
 
-    @NotBlank(message = "El nombre de usuario o email es requerido")
+    @Schema(description = "Username or email address", example = "johndoe@example.com", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "Username or email is required")
     private String usernameOrEmail;
 
-    @NotBlank(message = "La contraseña es requerida")
+    @Schema(description = "User's password", example = "password123", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "Password is required")
     private String password;
 }
 

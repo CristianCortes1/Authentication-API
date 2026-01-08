@@ -45,6 +45,10 @@ public class User {
     @Column(name = "verification_token")
     private String verificationToken;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.USER;
+
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
 
@@ -56,6 +60,12 @@ public class User {
         LOCAL,
         GOOGLE
     }
+
+    public enum Role {
+        USER,
+        ADMIN
+    }
+
 }
 
 

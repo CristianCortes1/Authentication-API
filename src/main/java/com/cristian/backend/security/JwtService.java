@@ -37,6 +37,23 @@ public class JwtService {
     }
 
     /**
+     * Genera un token JWT para autenticación de usuario con rol
+     */
+    public String generateToken(String username, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role);
+        return createToken(claims, username, jwtExpiration);
+    }
+
+    /**
+     * Extrae el rol del token
+     */
+    public String extractRole(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("role", String.class);
+    }
+
+    /**
      * Genera un token JWT para verificación de email
      */
     public String generateVerificationToken(String email) {

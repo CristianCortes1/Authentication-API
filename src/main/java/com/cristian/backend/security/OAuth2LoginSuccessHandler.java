@@ -37,7 +37,8 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
         User user = userService.findOrCreateGoogleUser(oauthUser);
 
-        String jwt = jwtService.generateToken(user.getEmail());
+        // Generar JWT con el rol del usuario
+        String jwt = jwtService.generateToken(user.getEmail(), user.getRole().name());
 
         // 🍪 Crear cookie segura
         ResponseCookie cookie = ResponseCookie.from("token", jwt)
@@ -51,7 +52,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         response.addHeader("Set-Cookie", cookie.toString());
 
         // Redirigir al frontend (ya autenticado)
-        response.sendRedirect("http://localhost:3000/dashboard");
+        response.sendRedirect("http://localhost:8080/swagger-ui.html");
     }
 }
 
