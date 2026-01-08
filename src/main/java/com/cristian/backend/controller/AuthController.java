@@ -183,7 +183,7 @@ public class AuthController {
                     return ResponseEntity.ok(Map.of(
                         "token", cookie.getValue(),
                         "bearer", "Bearer " + cookie.getValue(),
-                        "message", "Copia el valor de 'bearer' y pégalo en Swagger"
+                        "message", "Copy the 'bearer' value and paste it in Swagger"
                     ));
                 }
             }

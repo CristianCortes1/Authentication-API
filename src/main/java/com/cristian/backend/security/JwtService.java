@@ -29,7 +29,7 @@ public class JwtService {
     private long verificationExpiration;
 
     /**
-     * Genera un token JWT para autenticación de usuario
+     * Generates a JWT token for user authentication
      */
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
@@ -37,7 +37,7 @@ public class JwtService {
     }
 
     /**
-     * Genera un token JWT para autenticación de usuario con rol
+     * Generates a JWT token for user authentication with role
      */
     public String generateToken(String username, String role) {
         Map<String, Object> claims = new HashMap<>();
@@ -46,7 +46,7 @@ public class JwtService {
     }
 
     /**
-     * Extrae el rol del token
+     * Extracts the role from the token
      */
     public String extractRole(String token) {
         Claims claims = extractAllClaims(token);
@@ -54,7 +54,7 @@ public class JwtService {
     }
 
     /**
-     * Genera un token JWT para verificación de email
+     * Generates a JWT token for email verification
      */
     public String generateVerificationToken(String email) {
         Map<String, Object> claims = new HashMap<>();
@@ -63,7 +63,7 @@ public class JwtService {
     }
 
     /**
-     * Crea el token JWT
+     * Creates the JWT token
      */
     private String createToken(Map<String, Object> claims, String subject, long expiration) {
         Date now = new Date();
@@ -79,21 +79,21 @@ public class JwtService {
     }
 
     /**
-     * Extrae el username/email del token
+     * Extracts the username/email from the token
      */
     public String extractSubject(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
     /**
-     * Extrae la fecha de expiración del token
+     * Extracts the expiration date from the token
      */
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
     /**
-     * Extrae un claim específico del token
+     * Extracts a specific claim from the token
      */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
@@ -101,7 +101,7 @@ public class JwtService {
     }
 
     /**
-     * Extrae todos los claims del token
+     * Extracts all claims from the token
      */
     private Claims extractAllClaims(String token) {
         try {
@@ -110,24 +110,24 @@ public class JwtService {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (Exception e) {
-            log.error("Error al extraer claims del token: {}", e.getMessage());
+            log.error("Error extracting claims from token: {}", e.getMessage());
             throw e;
         }
     }
 
     /**
-     * Verifica si el token ha expirado
+     * Checks if the token has expired
      */
     public boolean isTokenExpired(String token) {
         try {
             return extractExpiration(token).before(new Date());
         } catch (Exception e) {
-            return true; // Si hay un error, consideramos que el token está expirado
+            return true; // If there's an error, consider the token expired
         }
     }
 
     /**
-     * Valida el token de verificación
+     * Validates the verification token
      */
     public boolean validateVerificationToken(String token) {
         try {
@@ -135,13 +135,13 @@ public class JwtService {
             String type = claims.get("type", String.class);
             return "verification".equals(type) && !isTokenExpired(token);
         } catch (Exception e) {
-            log.error("Error al validar token de verificación: {}", e.getMessage());
+            log.error("Error validating verification token: {}", e.getMessage());
             return false;
         }
     }
 
     /**
-     * Obtiene la clave de firma
+     * Gets the signing key
      */
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);

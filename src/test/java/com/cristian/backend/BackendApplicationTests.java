@@ -5,11 +5,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-@DisplayName("Suite de pruebas de la aplicación Spring Boot")
+@DisplayName("Spring Boot Application Test Suite")
 class BackendApplicationTests {
 
 	@Test
-	@DisplayName("Debe cargar el contexto de la aplicación correctamente")
+	@DisplayName("Should load application context correctly")
 	void contextLoads() {
 	}
 

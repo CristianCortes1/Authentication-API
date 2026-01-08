@@ -77,13 +77,13 @@ public class AdminController {
         } else {
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
-                "message", "Debes proporcionar userId o email"
+                "message", "You must provide userId or email"
             ));
         }
 
         return ResponseEntity.ok(Map.of(
             "success", true,
-            "message", "Rol actualizado correctamente",
+            "message", "Role updated successfully",
             "user", Map.of(
                 "id", updatedUser.getId(),
                 "email", updatedUser.getEmail(),

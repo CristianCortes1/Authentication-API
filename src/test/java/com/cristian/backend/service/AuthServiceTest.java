@@ -37,7 +37,7 @@ class AuthServiceTest {
 
     @Test
     void registerSuccessful() {
-        // ---------- GIVEN (preparación) ----------
+        // ---------- GIVEN (preparation) ----------
         RegisterRequest request = RegisterRequest.builder()
                 .username("testUser")
                 .email("testUser@test.com")
@@ -62,10 +62,10 @@ class AuthServiceTest {
                     return user;
                 });
 
-        // ---------- WHEN (acción) ----------
+        // ---------- WHEN (action) ----------
         AuthResponse response = authService.register(request);
 
-        // ---------- THEN (verificación) ----------
+        // ---------- THEN (verification) ----------
         assertTrue(response.getSuccess());
         assertEquals("testUser", response.getUsername());
         assertEquals("testUser@test.com", response.getEmail());
@@ -84,7 +84,7 @@ class AuthServiceTest {
     @Test
     @DisplayName("Register fails when username already exists")
     void registerUsernameExists() {
-        // ---------- GIVEN (preparación) ----------
+        // ---------- GIVEN (preparation) ----------
         RegisterRequest request = RegisterRequest.builder()
                 .username("testUserExistent")
                 .email("testUser@test.com")

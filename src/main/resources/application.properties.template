@@ -1,54 +1,103 @@
-# Application Configuration Template
-# Copia este archivo como application.properties y completa con tus valores reales
-# NUNCA subas application.properties con credenciales reales a GitHub
+# ===========================================
+# APPLICATION CONFIGURATION TEMPLATE
+# Authentication API with JWT & OAuth2
+# ===========================================
+#
+# INSTRUCTIONS:
+# 1. Copy this file as application-dev.properties or application-prod.properties
+# 2. Fill in your actual values (replace all YOUR_* placeholders)
+# 3. NEVER commit files with real credentials to version control
+# 4. Use environment variables for sensitive data in production
+#
+# ===========================================
 
-spring.application.name=backend
+spring.application.name=authentication-api
 
-# Database configuration
-spring.datasource.url=jdbc:postgresql://localhost:5432/NOMBRE_DE_TU_BD
-spring.datasource.username=TU_USUARIO_POSTGRES
-spring.datasource.password=TU_PASSWORD_POSTGRES
+# ===========================================
+# DATABASE - PostgreSQL
+# ===========================================
+spring.datasource.url=jdbc:postgresql://localhost:5432/YOUR_DATABASE_NAME
+spring.datasource.username=YOUR_POSTGRES_USER
+spring.datasource.password=YOUR_POSTGRES_PASSWORD
 
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=true
 
-# Server configuration
+# ===========================================
+# SERVER
+# ===========================================
 server.port=8080
 server.servlet.context-path=/
 
-# Logging
+# ===========================================
+# LOGGING
+# ===========================================
 logging.level.root=INFO
-logging.level.com.cristiancortes.backend=DEBUG
+logging.level.com.cristian.backend=DEBUG
+logging.level.org.springframework.security=DEBUG
 
-# Security
-spring.security.user.name=admin
-spring.security.user.password=GENERA_UN_HASH_BCRYPT
-spring.security.user.roles=ADMIN
-
-# Mail configuration
+# ===========================================
+# MAIL - SMTP Configuration
+# ===========================================
+# For development, use Mailtrap (https://mailtrap.io)
+# For production, use your SMTP provider (Gmail, SendGrid, etc.)
 spring.mail.default-encoding=UTF-8
-spring.mail.host=live.smtp.mailtrap.io
+spring.mail.host=YOUR_SMTP_HOST
 spring.mail.port=587
-spring.mail.username=smtp@mailtrap.io
-spring.mail.password=TU_PASSWORD_MAILTRAP
+spring.mail.username=YOUR_SMTP_USERNAME
+spring.mail.password=YOUR_SMTP_PASSWORD
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 spring.mail.properties.mail.smtp.localhost=localhost
 
-# JWT configuration
-# Genera una clave secreta segura (mínimo 256 bits en Base64)
-jwt.secret=TU_SECRET_KEY_BASE64_AQUI
-# Tiempo de expiración en milisegundos (86400000 = 24 horas)
+# ===========================================
+# JWT CONFIGURATION
+# ===========================================
+# Generate a secure secret key (minimum 256 bits / 32 characters in Base64)
+# You can generate one at: https://generate-secret.vercel.app/32
+jwt.secret=YOUR_JWT_SECRET_KEY_BASE64_HERE
+# Token expiration in milliseconds (86400000 = 24 hours)
 jwt.expiration=86400000
-# Tiempo de expiración del token de verificación (86400000 = 24 horas)
+# Verification token expiration (86400000 = 24 hours)
 jwt.verification.expiration=86400000
 
-# Mailtrap Configuration (para desarrollo)
-# Ver MAILTRAP_SETUP.md para instrucciones detalladas
-mailtrap.api.token=TU_MAILTRAP_API_TOKEN_AQUI
-app.mail.from=hello@demomailtrap.com
-app.mail.from-name=E-commerce App
-# Email de destino para desarrollo (debe estar verificado en Mailtrap)
-app.mail.dev-recipient=TU_EMAIL_VERIFICADO@gmail.com
+# ===========================================
+# OAUTH2 - Google Configuration
+# ===========================================
+# Get your credentials at: https://console.cloud.google.com/apis/credentials
+# Authorized redirect URI: http://localhost:8080/login/oauth2/code/google
+spring.security.oauth2.client.registration.google.client-id=YOUR_GOOGLE_CLIENT_ID
+spring.security.oauth2.client.registration.google.client-secret=YOUR_GOOGLE_CLIENT_SECRET
+spring.security.oauth2.client.registration.google.scope=openid,email,profile
+
+# ===========================================
+# JWT Resource Server (HMAC)
+# ===========================================
+# Must match jwt.secret above
+spring.security.oauth2.resourceserver.jwt.secret-key=YOUR_JWT_SECRET_KEY_BASE64_HERE
+# Set to false for development (HTTP), true for production (HTTPS)
+app.cookie.secure=false
+
+# ===========================================
+# OpenAPI/Swagger Configuration
+# ===========================================
+springdoc.api-docs.path=/api-docs
+springdoc.swagger-ui.path=/swagger-ui.html
+springdoc.swagger-ui.enabled=true
+springdoc.swagger-ui.operationsSorter=method
+springdoc.swagger-ui.tagsSorter=alpha
+springdoc.packages-to-scan=com.cristian.backend.controller
+
+# ===========================================
+# Application Info (for OpenAPI documentation)
+# ===========================================
+app.name=Authentication API
+app.description=Secure REST API for authentication with JWT and OAuth2
+app.version=1.0.0
+app.contact.name=YOUR_NAME
+app.contact.email=YOUR_EMAIL
+app.contact.url=YOUR_GITHUB_URL
+app.server.url=http://localhost:${server.port}${server.servlet.context-path}
 

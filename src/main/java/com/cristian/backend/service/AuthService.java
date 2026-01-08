@@ -28,10 +28,10 @@ public class AuthService {
             throw new EmailAlreadyRegisteredException();
         }
 
-        // Generar token de verificación JWT
+        // Generate verification JWT token
         String verificationToken = jwtService.generateVerificationToken(request.getEmail());
 
-        // Crear nuevo usuario
+        // Create new user
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -90,7 +90,7 @@ public class AuthService {
             throw new EmailNotVerifiedException();
         }
 
-        // Generar token con el rol del usuario
+        // Generate token with user role
         String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
 
         return AuthResponse.builder()

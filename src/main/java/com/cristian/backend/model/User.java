@@ -20,12 +20,12 @@ public class User {
     @Id
     private Long id;
 
-    @NotBlank(message = "El nombre de usuario es requerido")
+    @NotBlank(message = "Username is required")
     @Column(nullable = false, unique = true)
     private String username;
 
-    @NotBlank(message = "El email es requerido")
-    @Email(message = "El email debe ser válido")
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email must be valid")
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -40,7 +40,7 @@ public class User {
 
     @Builder.Default
     @Column(nullable = false)
-    private Boolean enabled = false; // false hasta que verifique el email
+    private Boolean enabled = false; // false until email is verified
 
     @Column(name = "verification_token")
     private String verificationToken;

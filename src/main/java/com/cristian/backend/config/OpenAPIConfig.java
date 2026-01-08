@@ -55,7 +55,7 @@ public class OpenAPIConfig {
                 .servers(List.of(
                         new Server()
                                 .url(serverUrl)
-                                .description("Servidor de Desarrollo")
+                                .description("Development Server")
                 ))
                 .addSecurityItem(new SecurityRequirement()
                         .addList("Bearer Authentication")
@@ -69,12 +69,12 @@ public class OpenAPIConfig {
                                         .bearerFormat("JWT")
                                         .in(SecurityScheme.In.HEADER)
                                         .name("Authorization")
-                                        .description("Ingresa tu token JWT en el formato: Bearer {token}"))
+                                        .description("Enter your JWT token in the format: Bearer {token}"))
                         // OAuth2 Google
                         .addSecuritySchemes("OAuth2",
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.OAUTH2)
-                                        .description("Autenticación OAuth2 con Google")
+                                        .description("OAuth2 Authentication with Google")
                                         .flows(new io.swagger.v3.oas.models.security.OAuthFlows()
                                                 .authorizationCode(new io.swagger.v3.oas.models.security.OAuthFlow()
                                                         .authorizationUrl("https://accounts.google.com/o/oauth2/v2/auth")

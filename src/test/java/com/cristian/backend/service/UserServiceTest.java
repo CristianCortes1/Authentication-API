@@ -1,5 +1,6 @@
 package com.cristian.backend.service;
 
+import com.cristian.backend.exception.UserNotFoundException;
 import com.cristian.backend.model.User;
 import com.cristian.backend.repository.UserRepository;
 import com.cristian.backend.security.OAuthUser;
@@ -133,9 +134,9 @@ class UserServiceTest {
 
         // THEN
         assertNotNull(result);
-        // El username debe tener el formato: firstName.lastName{timestamp}
+        // The username should have the format: firstName.lastName{timestamp}
         assertTrue(result.getUsername().startsWith("john.doe"));
-        // El timestamp puede ser de 1 a 3 dígitos (0-999)
+        // The timestamp can be 1 to 3 digits (0-999)
         assertTrue(result.getUsername().matches("john\\.doe\\d+"));
     }
 
@@ -365,9 +366,9 @@ class UserServiceTest {
 
         // THEN
         assertNotNull(result);
-        // El username debe ser: .user{timestamp}
+        // The username should be: .user{timestamp}
         assertTrue(result.getUsername().startsWith(".user"));
-        // El timestamp puede ser de 1 a 3 dígitos (0-999)
+        // The timestamp can be 1 to 3 digits (0-999)
         assertTrue(result.getUsername().matches("\\.user\\d+"));
     }
 
@@ -396,12 +397,12 @@ class UserServiceTest {
 
         // THEN
         assertNotNull(result);
-        // El username debe contener un punto y números (timestamp)
+        // The username must contain a dot and numbers (timestamp)
         String username = result.getUsername();
-        assertTrue(username.contains("."), "El username debe contener un punto");
-        // Extrae todos los números del username
+        assertTrue(username.contains("."), "Username must contain a dot");
+        // Extract all numbers from the username
         String numericPart = username.replaceAll("\\D", "");
-        assertFalse(numericPart.isEmpty(), "El username debe contener números del timestamp");
+        assertFalse(numericPart.isEmpty(), "Username must contain timestamp numbers");
     }
 
     @Test
@@ -438,5 +439,334 @@ class UserServiceTest {
         assertEquals(longEmail, result.getEmail());
     }
 
-}
+    // ============ TESTS FOR changeUserRole ============
 
+    @Test
+    @DisplayName("Should change user role successfully when user exists")
+    void changeUserRole_Success() {
+        // GIVEN
+        User user = User.builder()
+                .id(1L)
+                .username("john.doe")
+                .email("john.doe@example.com")
+                .firstName("John")
+                .lastName("Doe")
+                .role(User.Role.USER)
+                .enabled(true)
+                .build();
+
+        when(userRepository.findByEmail("john.doe@example.com"))
+                .thenReturn(Optional.of(user));
+
+        when(userRepository.save(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        User result = userService.changeUserRole("john.doe@example.com", User.Role.ADMIN);
+
+        // THEN
+        assertNotNull(result);
+        assertEquals(User.Role.ADMIN, result.getRole());
+        verify(userRepository, times(1)).findByEmail("john.doe@example.com");
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    @DisplayName("Should change role from ADMIN to USER successfully")
+    void changeUserRole_AdminToUser_Success() {
+        // GIVEN
+        User adminUser = User.builder()
+                .id(2L)
+                .username("admin.user")
+                .email("admin@example.com")
+                .firstName("Admin")
+                .lastName("User")
+                .role(User.Role.ADMIN)
+                .enabled(true)
+                .build();
+
+        when(userRepository.findByEmail("admin@example.com"))
+                .thenReturn(Optional.of(adminUser));
+
+        when(userRepository.save(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        User result = userService.changeUserRole("admin@example.com", User.Role.USER);
+
+        // THEN
+        assertNotNull(result);
+        assertEquals(User.Role.USER, result.getRole());
+    }
+
+    @Test
+    @DisplayName("Should throw UserNotFoundException when user email does not exist")
+    void changeUserRole_UserNotFound_ThrowsException() {
+        // GIVEN
+        when(userRepository.findByEmail("nonexistent@example.com"))
+                .thenReturn(Optional.empty());
+
+        // WHEN & THEN
+        assertThrows(UserNotFoundException.class,
+                () -> userService.changeUserRole("nonexistent@example.com", User.Role.ADMIN));
+        verify(userRepository, times(1)).findByEmail("nonexistent@example.com");
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when repository fails to save during role change")
+    void changeUserRole_RepositoryFailsOnSave_ThrowsException() {
+        // GIVEN
+        User user = User.builder()
+                .id(3L)
+                .username("save.error")
+                .email("save.error@example.com")
+                .role(User.Role.USER)
+                .build();
+
+        when(userRepository.findByEmail("save.error@example.com"))
+                .thenReturn(Optional.of(user));
+
+        when(userRepository.save(any(User.class)))
+                .thenThrow(new RuntimeException("Database error"));
+
+        // WHEN & THEN
+        assertThrows(RuntimeException.class,
+                () -> userService.changeUserRole("save.error@example.com", User.Role.ADMIN));
+        verify(userRepository, times(1)).findByEmail("save.error@example.com");
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should keep the same role when changing to the current role")
+    void changeUserRole_SameRole_Success() {
+        // GIVEN
+        User user = User.builder()
+                .id(4L)
+                .username("same.role")
+                .email("same.role@example.com")
+                .role(User.Role.USER)
+                .build();
+
+        when(userRepository.findByEmail("same.role@example.com"))
+                .thenReturn(Optional.of(user));
+
+        when(userRepository.save(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        User result = userService.changeUserRole("same.role@example.com", User.Role.USER);
+
+        // THEN
+        assertNotNull(result);
+        assertEquals(User.Role.USER, result.getRole());
+        verify(userRepository, times(1)).save(user);
+    }
+
+    // ============ TESTS FOR changeUserRoleById ============
+
+    @Test
+    @DisplayName("Should change user role by ID successfully when user exists")
+    void changeUserRoleById_Success() {
+        // GIVEN
+        User user = User.builder()
+                .id(1L)
+                .username("john.doe")
+                .email("john.doe@example.com")
+                .firstName("John")
+                .lastName("Doe")
+                .role(User.Role.USER)
+                .enabled(true)
+                .build();
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+
+        when(userRepository.save(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        User result = userService.changeUserRoleById(1L, User.Role.ADMIN);
+
+        // THEN
+        assertNotNull(result);
+        assertEquals(User.Role.ADMIN, result.getRole());
+        assertEquals(1L, result.getId());
+        verify(userRepository, times(1)).findById(1L);
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    @DisplayName("Should change role from ADMIN to USER by ID successfully")
+    void changeUserRoleById_AdminToUser_Success() {
+        // GIVEN
+        User adminUser = User.builder()
+                .id(2L)
+                .username("admin.user")
+                .email("admin@example.com")
+                .role(User.Role.ADMIN)
+                .build();
+
+        when(userRepository.findById(2L))
+                .thenReturn(Optional.of(adminUser));
+
+        when(userRepository.save(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        User result = userService.changeUserRoleById(2L, User.Role.USER);
+
+        // THEN
+        assertNotNull(result);
+        assertEquals(User.Role.USER, result.getRole());
+    }
+
+    @Test
+    @DisplayName("Should throw UserNotFoundException when user ID does not exist")
+    void changeUserRoleById_UserNotFound_ThrowsException() {
+        // GIVEN
+        when(userRepository.findById(999L))
+                .thenReturn(Optional.empty());
+
+        // WHEN & THEN
+        assertThrows(UserNotFoundException.class,
+                () -> userService.changeUserRoleById(999L, User.Role.ADMIN));
+        verify(userRepository, times(1)).findById(999L);
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when repository fails to save during role change by ID")
+    void changeUserRoleById_RepositoryFailsOnSave_ThrowsException() {
+        // GIVEN
+        User user = User.builder()
+                .id(3L)
+                .username("save.error")
+                .email("save.error@example.com")
+                .role(User.Role.USER)
+                .build();
+
+        when(userRepository.findById(3L))
+                .thenReturn(Optional.of(user));
+
+        when(userRepository.save(any(User.class)))
+                .thenThrow(new RuntimeException("Database error"));
+
+        // WHEN & THEN
+        assertThrows(RuntimeException.class,
+                () -> userService.changeUserRoleById(3L, User.Role.ADMIN));
+        verify(userRepository, times(1)).findById(3L);
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should keep the same role when changing to the current role by ID")
+    void changeUserRoleById_SameRole_Success() {
+        // GIVEN
+        User user = User.builder()
+                .id(4L)
+                .username("same.role")
+                .email("same.role@example.com")
+                .role(User.Role.ADMIN)
+                .build();
+
+        when(userRepository.findById(4L))
+                .thenReturn(Optional.of(user));
+
+        when(userRepository.save(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        User result = userService.changeUserRoleById(4L, User.Role.ADMIN);
+
+        // THEN
+        assertNotNull(result);
+        assertEquals(User.Role.ADMIN, result.getRole());
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when finding user by null ID")
+    void changeUserRoleById_NullId_ThrowsException() {
+        // GIVEN
+        when(userRepository.findById(null))
+                .thenThrow(new IllegalArgumentException("ID cannot be null"));
+
+        // WHEN & THEN
+        assertThrows(IllegalArgumentException.class,
+                () -> userService.changeUserRoleById(null, User.Role.ADMIN));
+    }
+
+    @Test
+    @DisplayName("Should preserve other user fields when changing role by email")
+    void changeUserRole_PreservesOtherFields() {
+        // GIVEN
+        User user = User.builder()
+                .id(5L)
+                .username("preserve.test")
+                .email("preserve@example.com")
+                .firstName("Preserve")
+                .lastName("Test")
+                .role(User.Role.USER)
+                .enabled(true)
+                .provider(User.AuthProvider.LOCAL)
+                .build();
+
+        when(userRepository.findByEmail("preserve@example.com"))
+                .thenReturn(Optional.of(user));
+
+        when(userRepository.save(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        User result = userService.changeUserRole("preserve@example.com", User.Role.ADMIN);
+
+        // THEN
+        assertNotNull(result);
+        assertEquals(User.Role.ADMIN, result.getRole());
+        assertEquals(5L, result.getId());
+        assertEquals("preserve.test", result.getUsername());
+        assertEquals("preserve@example.com", result.getEmail());
+        assertEquals("Preserve", result.getFirstName());
+        assertEquals("Test", result.getLastName());
+        assertTrue(result.getEnabled());
+        assertEquals(User.AuthProvider.LOCAL, result.getProvider());
+    }
+
+    @Test
+    @DisplayName("Should preserve other user fields when changing role by ID")
+    void changeUserRoleById_PreservesOtherFields() {
+        // GIVEN
+        User user = User.builder()
+                .id(6L)
+                .username("preserve.id.test")
+                .email("preserve.id@example.com")
+                .firstName("PreserveId")
+                .lastName("Test")
+                .role(User.Role.ADMIN)
+                .enabled(true)
+                .provider(User.AuthProvider.GOOGLE)
+                .build();
+
+        when(userRepository.findById(6L))
+                .thenReturn(Optional.of(user));
+
+        when(userRepository.save(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        User result = userService.changeUserRoleById(6L, User.Role.USER);
+
+        // THEN
+        assertNotNull(result);
+        assertEquals(User.Role.USER, result.getRole());
+        assertEquals(6L, result.getId());
+        assertEquals("preserve.id.test", result.getUsername());
+        assertEquals("preserve.id@example.com", result.getEmail());
+        assertEquals("PreserveId", result.getFirstName());
+        assertEquals("Test", result.getLastName());
+        assertTrue(result.getEnabled());
+        assertEquals(User.AuthProvider.GOOGLE, result.getProvider());
+    }
+
+}

@@ -12,7 +12,14 @@ target/
 .settings
 .springBeans
 .sts4-cache
-*.properties
+
+### Properties ###
+# Ignore all properties files except templates and test
+src/main/resources/application.properties
+src/main/resources/application-dev.properties
+src/main/resources/application-prod.properties
+!src/main/resources/application.properties.template
+!src/test/resources/application-test.properties
 
 ### IntelliJ IDEA ###
 .idea
@@ -32,3 +39,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Environment ###
+.env
+.env.local
+.env.*.local
+
+### Logs ###
+*.log
+logs/
+

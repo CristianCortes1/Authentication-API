@@ -84,15 +84,15 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
 
-                // JWT para endpoints protegidos (header Authorization)
+                // JWT for protected endpoints (Authorization header)
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 )
 
-                // 🍪 Filtro para autenticación por cookie (antes del filtro de usuario/password)
+                // 🍪 Filter for cookie authentication (before username/password filter)
                 .addFilterBefore(jwtCookieAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
-                // Login con Google
+                // Login with Google
                 .oauth2Login(oauth2 ->
                         oauth2.successHandler(oAuth2LoginSuccessHandler)
                 );

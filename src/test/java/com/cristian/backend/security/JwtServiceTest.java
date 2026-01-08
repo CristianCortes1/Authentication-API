@@ -36,7 +36,7 @@ class JwtServiceTest {
         verificationExpiration = 86400000;
 
         jwtService = new JwtService();
-        // Inyectar valores privados usando reflexión
+        // Inject private values using reflection
         try {
             var secretField = JwtService.class.getDeclaredField("secretKey");
             secretField.setAccessible(true);
@@ -50,7 +50,7 @@ class JwtServiceTest {
             verificationField.setAccessible(true);
             verificationField.set(jwtService, verificationExpiration);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException("Error inicializando el test", e);
+            throw new RuntimeException("Error initializing test", e);
         }
     }
 
@@ -121,7 +121,7 @@ class JwtServiceTest {
         String token = jwtService.generateToken(username);
 
         // WHEN
-        // Esperar un poco para asegurar que el token se ha generado
+        // Wait a bit to ensure the token has been generated
         try {
             Thread.sleep(10);
         } catch (InterruptedException e) {
@@ -189,7 +189,7 @@ class JwtServiceTest {
     @DisplayName("Should reject verification token with wrong type claim")
     void testValidateVerificationToken_WrongType() {
         // GIVEN
-        // Crear un token que no es de tipo "verification"
+        // Create a token that is not of type "verification"
         String username = "testuser";
         Key signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
         Date now = new Date();
@@ -217,7 +217,7 @@ class JwtServiceTest {
         String email = "user@test.com";
         Key signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() - 1000); // Expirado
+        Date expiryDate = new Date(now.getTime() - 1000); // Expired
 
         String expiredVerificationToken = Jwts.builder()
                 .claim("type", "verification")
@@ -257,7 +257,7 @@ class JwtServiceTest {
         // WHEN
         String token1 = jwtService.generateToken(username);
         try {
-            Thread.sleep(1000); // Pequeño delay para asegurar timestamps diferentes
+            Thread.sleep(1000); // Small delay to ensure different timestamps
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -291,7 +291,7 @@ class JwtServiceTest {
         String token = jwtService.generateToken(username);
 
         // THEN
-        // Un JWT válido tiene 3 partes separadas por puntos
+        // A valid JWT has 3 parts separated by dots
         String[] parts = token.split("\\.");
         assertEquals(3, parts.length);
     }
@@ -351,7 +351,7 @@ class JwtServiceTest {
 
         // THEN
         assertNotNull(expiration);
-        // Verificar que el token expira en el futuro (entre ahora y 1 hora)
+// Verify that the token expires in the future (between now and 1 hour)
         long now = System.currentTimeMillis();
         long expirationTime = expiration.getTime();
         assertTrue(expirationTime > now, "Expiration should be in the future");
@@ -370,7 +370,7 @@ class JwtServiceTest {
 
         // THEN
         assertNotNull(expiration);
-        // Verificar que el token expira en el futuro (entre ahora y 24 horas)
+// Verify that the token expires in the future (between now and 24 hours)
         long now = System.currentTimeMillis();
         long expirationTime = expiration.getTime();
         assertTrue(expirationTime > now, "Expiration should be in the future");
@@ -429,14 +429,14 @@ class JwtServiceTest {
 
         // THEN
         assertNotEquals(authExpiration.getTime(), verificationExpiration.getTime());
-        assertTrue(verificationExpiration.getTime() > authExpiration.getTime()); // Verification expira después
+        assertTrue(verificationExpiration.getTime() > authExpiration.getTime()); // Verification expires later
     }
 
     @Test
     @DisplayName("Should throw exception when extracting subject from malformed token")
     void testExtractSubjectFromMalformedToken() {
         // GIVEN
-        String malformedToken = "header.payload"; // Falta la firma
+        String malformedToken = "header.payload"; // Missing signature
 
         // WHEN & THEN
         assertThrows(Throwable.class, () -> jwtService.extractSubject(malformedToken));
@@ -485,10 +485,10 @@ class JwtServiceTest {
         // WHEN
         try {
             boolean isValid = jwtService.validateVerificationToken(nullToken);
-            // Si no lanza excepción, debe ser inválido
+            // If no exception is thrown, it should be invalid
             assertFalse(isValid);
         } catch (Throwable e) {
-            // También es válido que lance excepción
+            // It's also valid if it throws an exception
             assertTrue(true);
         }
     }
@@ -502,10 +502,10 @@ class JwtServiceTest {
         // WHEN
         try {
             boolean isValid = jwtService.validateVerificationToken(emptyToken);
-            // Si no lanza excepción, debe ser inválido
+            // If no exception is thrown, it should be invalid
             assertFalse(isValid);
         } catch (Throwable e) {
-            // También es válido que lance excepción
+            // It's also valid if it throws an exception
             assertTrue(true);
         }
     }
@@ -539,10 +539,10 @@ class JwtServiceTest {
         // WHEN & THEN
         try {
             String token = jwtService.generateToken(nullUsername);
-            // Si genera token con null, es válido
+            // If it generates token with null, it's valid
             assertNotNull(token);
         } catch (Throwable e) {
-            // También es válido que lance excepción
+            // It's also valid if it throws an exception
             assertTrue(true);
         }
     }
@@ -556,10 +556,10 @@ class JwtServiceTest {
         // WHEN & THEN
         try {
             String token = jwtService.generateVerificationToken(nullEmail);
-            // Si genera token con null, es válido
+            // If it generates token with null, it's valid
             assertNotNull(token);
         } catch (Throwable e) {
-            // También es válido que lance excepción
+            // It's also valid if it throws an exception
             assertTrue(true);
         }
     }
@@ -662,7 +662,7 @@ class JwtServiceTest {
         // GIVEN
         String username = "testuser";
         String token = jwtService.generateToken(username);
-        // Modificar el token (cambiar un carácter en la firma)
+        // Modify the token (change a character in the signature)
         String modifiedToken = token.substring(0, token.length() - 1) + "X";
 
         // WHEN & THEN
@@ -678,16 +678,16 @@ class JwtServiceTest {
         // WHEN
         String token1 = jwtService.generateToken(username);
         try {
-            Thread.sleep(1000); // Pequeño delay para asegurar timestamps diferentes
+            Thread.sleep(1000); // Small delay to ensure different timestamps
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
         String token2 = jwtService.generateToken(username);
 
         // THEN
-        // Los tokens deben ser diferentes (contienen timestamps diferentes)
+        // Tokens must be different (they contain different timestamps)
         assertNotEquals(token1, token2);
-        // Pero el subject debe ser el mismo
+        // But the subject must be the same
         assertEquals(jwtService.extractSubject(token1), jwtService.extractSubject(token2));
     }
 
@@ -698,7 +698,7 @@ class JwtServiceTest {
         String email = "user@test.com";
         Key signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
         Date now = new Date();
-        // Expirar 100ms en el pasado para asegurar que está expirado
+        // Expire 100ms in the past to ensure it's expired
         Date expiryDate = new Date(now.getTime() - 100);
 
         String tokenExpiredNow = Jwts.builder()

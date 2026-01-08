@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@DisplayName("Suite de pruebas del controlador de autenticación")
+@DisplayName("Authentication Controller Test Suite")
 public class AuthControllerTest {
 
     @Autowired
