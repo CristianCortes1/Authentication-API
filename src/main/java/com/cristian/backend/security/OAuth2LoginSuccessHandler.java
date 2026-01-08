@@ -5,6 +5,7 @@ import com.cristian.backend.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -16,14 +17,17 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final UserService userService;
     private final JwtService jwtService;
 
-    // viene de application-dev.properties / application-prod.properties
     @Value("${app.cookie.secure}")
     private boolean cookieSecure;
+
+    @Value("${app.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
 
     @Override
     public void onAuthenticationSuccess(
@@ -37,22 +41,27 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
         User user = userService.findOrCreateGoogleUser(oauthUser);
 
-        // Generar JWT con el rol del usuario
+        log.info("OAuth2 login successful for user: {} with role: {}", user.getEmail(), user.getRole());
+
+        // Generate JWT with user role
         String jwt = jwtService.generateToken(user.getEmail(), user.getRole().name());
 
-        // 🍪 Crear cookie segura
+        // 🍪 Create secure cookie
         ResponseCookie cookie = ResponseCookie.from("token", jwt)
-                .httpOnly(true)          // JS no puede leerla (protege XSS)
-                .secure(cookieSecure)    // false en dev, true en prod
-                .path("/")               // disponible en toda la app
-                .sameSite("Lax")         // compatible con OAuth
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .sameSite("Lax")
+                .maxAge(86400)
                 .build();
 
-        // Enviar cookie al navegador
         response.addHeader("Set-Cookie", cookie.toString());
 
-        // Redirigir al frontend (ya autenticado)
-        response.sendRedirect("http://localhost:8080/swagger-ui.html");
+        // Redirect to frontend
+        String redirectUrl = frontendUrl + "/auth/callback";
+        log.info("Redirecting to: {}", redirectUrl);
+
+        response.sendRedirect(redirectUrl);
     }
 }
 

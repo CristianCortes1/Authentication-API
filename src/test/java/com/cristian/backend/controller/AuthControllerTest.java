@@ -260,5 +260,147 @@ public class AuthControllerTest {
         mockMvc.perform(get("/api/auth/verify"))
                 .andExpect(status().isBadRequest());
     }
+
+    // ============ TESTS FOR /me ENDPOINT ============
+
+    @Test
+    @DisplayName("Should return current user when authenticated")
+    public void testGetCurrentUserSuccess() throws Exception {
+        AuthResponse userResponse = AuthResponse.builder()
+                .id(1L)
+                .username("cristian")
+                .email("bejaranno05cortes@gmail.com")
+                .firstName("Cristian")
+                .lastName("Cortes")
+                .role("USER")
+                .success(true)
+                .build();
+
+        when(authService.getUserByEmail("bejaranno05cortes@gmail.com"))
+                .thenReturn(userResponse);
+
+        when(jwtService.extractSubject(any())).thenReturn("bejaranno05cortes@gmail.com");
+        when(jwtService.extractRole(any())).thenReturn("USER");
+        when(jwtService.isTokenExpired(any())).thenReturn(false);
+
+        mockMvc.perform(get("/api/auth/me")
+                        .header("Authorization", "Bearer valid-jwt-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.username").value("cristian"))
+                .andExpect(jsonPath("$.email").value("bejaranno05cortes@gmail.com"));
+    }
+
+    @Test
+    @DisplayName("Should return 401 when getting current user without authentication")
+    public void testGetCurrentUserUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/auth/me"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    // ============ TESTS FOR /logout ENDPOINT ============
+
+    @Test
+    @DisplayName("Should successfully logout and clear cookie")
+    public void testLogoutSuccess() throws Exception {
+        mockMvc.perform(post("/api/auth/logout"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Logout successful"))
+                .andExpect(header().exists("Set-Cookie"));
+    }
+
+    @Test
+    @DisplayName("Should clear token cookie on logout")
+    public void testLogoutClearsCookie() throws Exception {
+        mockMvc.perform(post("/api/auth/logout"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("token=")))
+                .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("Max-Age=0")));
+    }
+
+    // ============ TESTS FOR /resend-verification ENDPOINT ============
+
+    @Test
+    @DisplayName("Should successfully resend verification email")
+    public void testResendVerificationEmailSuccess() throws Exception {
+        AuthResponse resendResponse = AuthResponse.builder()
+                .success(true)
+                .message("Verification email sent successfully")
+                .build();
+
+        when(authService.resendVerificationEmail("bejaranno05cortes@gmail.com"))
+                .thenReturn(resendResponse);
+
+        mockMvc.perform(post("/api/auth/resend-verification")
+                        .param("email", "bejaranno05cortes@gmail.com"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Verification email sent successfully"));
+    }
+
+    @Test
+    @DisplayName("Should fail to resend verification for non-existent user")
+    public void testResendVerificationEmailUserNotFound() throws Exception {
+        AuthResponse notFoundResponse = AuthResponse.builder()
+                .success(false)
+                .message("User not found")
+                .build();
+
+        when(authService.resendVerificationEmail("nonexistent@example.com"))
+                .thenReturn(notFoundResponse);
+
+        mockMvc.perform(post("/api/auth/resend-verification")
+                        .param("email", "nonexistent@example.com"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("User not found"));
+    }
+
+    @Test
+    @DisplayName("Should fail to resend verification for already verified user")
+    public void testResendVerificationEmailAlreadyVerified() throws Exception {
+        AuthResponse alreadyVerifiedResponse = AuthResponse.builder()
+                .success(false)
+                .message("Email is already verified")
+                .build();
+
+        when(authService.resendVerificationEmail("verified@example.com"))
+                .thenReturn(alreadyVerifiedResponse);
+
+        mockMvc.perform(post("/api/auth/resend-verification")
+                        .param("email", "verified@example.com"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Email is already verified"));
+    }
+
+    @Test
+    @DisplayName("Should reject resend verification without email parameter")
+    public void testResendVerificationEmailMissingEmail() throws Exception {
+        mockMvc.perform(post("/api/auth/resend-verification"))
+                .andExpect(status().isBadRequest());
+    }
+
+    // ============ TESTS FOR /token ENDPOINT ============
+
+    @Test
+    @DisplayName("Should return 401 when no token cookie is present")
+    public void testGetTokenWithoutCookie() throws Exception {
+        mockMvc.perform(get("/api/auth/token"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("No token found. Please login first."));
+    }
+
+    @Test
+    @DisplayName("Should return token when cookie is present")
+    public void testGetTokenWithCookie() throws Exception {
+        mockMvc.perform(get("/api/auth/token")
+                        .cookie(new jakarta.servlet.http.Cookie("token", "test-jwt-token")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("test-jwt-token"))
+                .andExpect(jsonPath("$.bearer").value("Bearer test-jwt-token"))
+                .andExpect(jsonPath("$.message").exists());
+    }
 }
 

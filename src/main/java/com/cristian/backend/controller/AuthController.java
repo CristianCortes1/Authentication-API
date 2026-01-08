@@ -11,13 +11,19 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -30,6 +36,9 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+
+    @Value("${app.cookie.secure:false}")
+    private boolean cookieSecure;
 
     @Operation(
         summary = "Register new user",
@@ -190,6 +199,124 @@ public class AuthController {
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("error", "No token found. Please login first."));
+    }
+
+    @Operation(
+        summary = "Get current user",
+        description = "Returns the authenticated user's information based on the JWT token",
+        security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "User information retrieved successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = AuthResponse.class),
+                examples = @ExampleObject(value = "{\"id\": 1, \"username\": \"johndoe\", \"email\": \"johndoe@example.com\", \"firstName\": \"John\", \"lastName\": \"Doe\", \"success\": true, \"role\": \"USER\"}")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "User not authenticated",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(value = "{\"message\": \"Not authenticated\", \"success\": false}")
+            )
+        )
+    })
+    @GetMapping("/me")
+    public ResponseEntity<AuthResponse> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() ||
+            "anonymousUser".equals(authentication.getPrincipal())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(AuthResponse.builder()
+                            .success(false)
+                            .message("Not authenticated")
+                            .build());
+        }
+
+        String email = authentication.getName();
+        AuthResponse response = authService.getUserByEmail(email);
+
+        if (response.getSuccess()) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @Operation(
+        summary = "Logout",
+        description = "Logs out the user by clearing the authentication cookie"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Logout successful",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(value = "{\"message\": \"Logout successful\", \"success\": true}")
+            )
+        )
+    })
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, Object>> logout(HttpServletResponse response) {
+        // Clear the token cookie
+        ResponseCookie cookie = ResponseCookie.from("token", "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(0) // Expire immediately
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
+
+        // Clear security context
+        SecurityContextHolder.clearContext();
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Logout successful",
+                "success", true
+        ));
+    }
+
+    @Operation(
+        summary = "Resend verification email",
+        description = "Resends the verification email to the specified email address"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Verification email sent successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = AuthResponse.class),
+                examples = @ExampleObject(value = "{\"message\": \"Verification email sent successfully\", \"success\": true}")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Error sending email (user not found, already verified, etc.)",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = AuthResponse.class),
+                examples = @ExampleObject(value = "{\"message\": \"User not found or already verified\", \"success\": false}")
+            )
+        )
+    })
+    @PostMapping("/resend-verification")
+    public ResponseEntity<AuthResponse> resendVerificationEmail(
+            @Parameter(description = "Email address to resend verification to", required = true)
+            @RequestParam("email") String email
+    ) {
+        AuthResponse response = authService.resendVerificationEmail(email);
+        if (response.getSuccess()) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }
 

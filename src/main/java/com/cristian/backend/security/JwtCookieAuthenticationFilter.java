@@ -51,17 +51,17 @@ public class JwtCookieAuthenticationFilter extends OncePerRequestFilter {
                     String email = jwtService.extractSubject(token);
                     String role = jwtService.extractRole(token);
 
-                    log.info("Token encontrado para: {} con rol en token: {}", email, role);
+                    log.info("Token found for: {} with role in token: {}", email, role);
 
                     // Si el token no tiene rol, buscamos en la base de datos
                     if (role == null || role.isEmpty()) {
                         Optional<User> userOpt = userRepository.findByEmail(email);
                         if (userOpt.isPresent()) {
                             role = userOpt.get().getRole().name();
-                            log.info("Rol obtenido de BD para {}: {}", email, role);
+                            log.info("Role obtained from DB for {}: {}", email, role);
                         } else {
                             role = "USER"; // default
-                            log.warn("Usuario no encontrado en BD, usando rol por defecto: USER");
+                            log.warn("User not found in DB, using default role: USER");
                         }
                     }
 
@@ -77,13 +77,13 @@ public class JwtCookieAuthenticationFilter extends OncePerRequestFilter {
                                 );
 
                         SecurityContextHolder.getContext().setAuthentication(authentication);
-                        log.info(" Usuario autenticado: {} con rol: ROLE_{}", email, role);
+                        log.info("User authenticated: {} with role: ROLE_{}", email, role);
                     }
                 } else {
-                    log.warn("Token expirado");
+                    log.warn("Token expired");
                 }
             } catch (Exception e) {
-                log.error(" Error al procesar token de cookie: {}", e.getMessage());
+                log.error("Error processing cookie token: {}", e.getMessage());
             }
         }
 

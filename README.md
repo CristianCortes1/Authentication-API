@@ -145,7 +145,10 @@ mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev
 |--------|----------|-------------|---------------|
 | `POST` | `/api/auth/register` | Register a new user | ❌ |
 | `POST` | `/api/auth/login` | Login with credentials | ❌ |
+| `POST` | `/api/auth/logout` | Logout (clear cookie) | ❌ |
+| `GET` | `/api/auth/me` | Get current user info | ✅ JWT |
 | `GET` | `/api/auth/verify` | Verify email address | ❌ |
+| `POST` | `/api/auth/resend-verification` | Resend verification email | ❌ |
 | `GET` | `/api/auth/token` | Get current JWT token | ❌ |
 | `GET` | `/api/auth/health` | Health check | ❌ |
 
@@ -239,6 +242,60 @@ curl -X PUT http://localhost:8080/api/admin/users/role \
     "username": "johndoe",
     "role": "ADMIN"
   }
+}
+```
+</details>
+
+<details>
+<summary>👤 Get Current User</summary>
+
+```bash
+curl -X GET http://localhost:8080/api/auth/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "username": "johndoe",
+  "email": "john@example.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "success": true,
+  "role": "USER"
+}
+```
+</details>
+
+<details>
+<summary>🚪 Logout</summary>
+
+```bash
+curl -X POST http://localhost:8080/api/auth/logout
+```
+
+**Response:**
+```json
+{
+  "message": "Logout successful",
+  "success": true
+}
+```
+</details>
+
+<details>
+<summary>📧 Resend Verification Email</summary>
+
+```bash
+curl -X POST "http://localhost:8080/api/auth/resend-verification?email=john@example.com"
+```
+
+**Response:**
+```json
+{
+  "message": "Verification email sent successfully",
+  "success": true
 }
 ```
 </details>
@@ -398,6 +455,63 @@ src/
 5. Configure consent screen
 6. Add authorized redirect URI: `http://localhost:8080/login/oauth2/code/google`
 7. Copy Client ID and Client Secret
+
+### Using OAuth2 from Frontend
+
+After successful OAuth2 authentication, users are redirected to your frontend application at `{frontendUrl}/auth/callback` with a JWT token set as an HTTP-only cookie.
+
+#### Initiating OAuth2 Login
+
+```javascript
+// Redirect user to Google login
+window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+```
+
+#### Handling the Callback in Frontend
+
+```javascript
+// In your /auth/callback page (React example)
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+function AuthCallback() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // The JWT token is automatically set as an HTTP-only cookie
+    // Verify authentication by calling the token endpoint
+    fetch('http://localhost:8080/api/auth/token', { 
+      credentials: 'include' 
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
+          // User is authenticated, redirect to dashboard
+          navigate('/dashboard');
+        } else {
+          navigate('/login?error=auth_failed');
+        }
+      })
+      .catch(() => navigate('/login?error=auth_failed'));
+  }, [navigate]);
+
+  return <div>Authenticating...</div>;
+}
+
+export default AuthCallback;
+```
+
+#### Frontend Configuration
+
+Configure the frontend URL in your backend properties:
+
+```properties
+# application-dev.properties
+app.frontend.url=http://localhost:3000
+
+# application-prod.properties  
+app.frontend.url=${FRONTEND_URL:https://your-frontend.com}
+```
 
 ### JWT Secret Generation
 

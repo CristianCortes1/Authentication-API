@@ -14,6 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -355,5 +357,172 @@ class AuthServiceTest {
         // THEN
         assertTrue(response.getSuccess());
         assertEquals("Email already verified", response.getMessage());
+    }
+
+    // ============ TESTS FOR getUserByEmail ============
+
+    @Test
+    @DisplayName("Should return user info when user exists")
+    void getUserByEmail_Success() {
+        // GIVEN
+        String email = "user@test.com";
+        User user = User.builder()
+                .id(1L)
+                .username("testuser")
+                .email(email)
+                .firstName("Test")
+                .lastName("User")
+                .role(User.Role.USER)
+                .enabled(true)
+                .build();
+
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.of(user));
+
+        // WHEN
+        AuthResponse response = authService.getUserByEmail(email);
+
+        // THEN
+        assertTrue(response.getSuccess());
+        assertEquals(1L, response.getId());
+        assertEquals("testuser", response.getUsername());
+        assertEquals(email, response.getEmail());
+        assertEquals("Test", response.getFirstName());
+        assertEquals("User", response.getLastName());
+        assertEquals("USER", response.getRole());
+    }
+
+    @Test
+    @DisplayName("Should return failure when user not found by email")
+    void getUserByEmail_NotFound() {
+        // GIVEN
+        String email = "nonexistent@test.com";
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.empty());
+
+        // WHEN
+        AuthResponse response = authService.getUserByEmail(email);
+
+        // THEN
+        assertFalse(response.getSuccess());
+        assertEquals("User not found", response.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should return admin role when user is admin")
+    void getUserByEmail_AdminRole() {
+        // GIVEN
+        String email = "admin@test.com";
+        User user = User.builder()
+                .id(2L)
+                .username("adminuser")
+                .email(email)
+                .firstName("Admin")
+                .lastName("User")
+                .role(User.Role.ADMIN)
+                .enabled(true)
+                .build();
+
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.of(user));
+
+        // WHEN
+        AuthResponse response = authService.getUserByEmail(email);
+
+        // THEN
+        assertTrue(response.getSuccess());
+        assertEquals("ADMIN", response.getRole());
+    }
+
+    // ============ TESTS FOR resendVerificationEmail ============
+
+    @Test
+    @DisplayName("Should successfully resend verification email")
+    void resendVerificationEmail_Success() {
+        // GIVEN
+        String email = "unverified@test.com";
+        User user = User.builder()
+                .id(1L)
+                .username("unverifieduser")
+                .email(email)
+                .enabled(false)
+                .build();
+
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.of(user));
+        when(jwtService.generateVerificationToken(email)).thenReturn("new-verification-token");
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        doNothing().when(emailService).sendVerificationEmail(anyString(), anyString(), anyString());
+
+        // WHEN
+        AuthResponse response = authService.resendVerificationEmail(email);
+
+        // THEN
+        assertTrue(response.getSuccess());
+        assertEquals("Verification email sent successfully", response.getMessage());
+        verify(jwtService, times(1)).generateVerificationToken(email);
+        verify(userRepository, times(1)).save(any(User.class));
+        verify(emailService, times(1)).sendVerificationEmail(eq(email), eq("unverifieduser"), eq("new-verification-token"));
+    }
+
+    @Test
+    @DisplayName("Should fail resend verification when user not found")
+    void resendVerificationEmail_UserNotFound() {
+        // GIVEN
+        String email = "nonexistent@test.com";
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.empty());
+
+        // WHEN
+        AuthResponse response = authService.resendVerificationEmail(email);
+
+        // THEN
+        assertFalse(response.getSuccess());
+        assertEquals("User not found", response.getMessage());
+        verify(emailService, never()).sendVerificationEmail(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("Should fail resend verification when email is already verified")
+    void resendVerificationEmail_AlreadyVerified() {
+        // GIVEN
+        String email = "verified@test.com";
+        User user = User.builder()
+                .id(1L)
+                .username("verifieduser")
+                .email(email)
+                .enabled(true)
+                .build();
+
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.of(user));
+
+        // WHEN
+        AuthResponse response = authService.resendVerificationEmail(email);
+
+        // THEN
+        assertFalse(response.getSuccess());
+        assertEquals("Email is already verified", response.getMessage());
+        verify(emailService, never()).sendVerificationEmail(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("Should return error when email service fails during resend")
+    void resendVerificationEmail_EmailServiceFails() {
+        // GIVEN
+        String email = "unverified@test.com";
+        User user = User.builder()
+                .id(1L)
+                .username("unverifieduser")
+                .email(email)
+                .enabled(false)
+                .build();
+
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.of(user));
+        when(jwtService.generateVerificationToken(email)).thenReturn("new-token");
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        doThrow(new RuntimeException("Email service error"))
+                .when(emailService).sendVerificationEmail(anyString(), anyString(), anyString());
+
+        // WHEN
+        AuthResponse response = authService.resendVerificationEmail(email);
+
+        // THEN
+        assertFalse(response.getSuccess());
+        assertEquals("Error sending verification email", response.getMessage());
     }
 }

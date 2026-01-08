@@ -156,4 +156,68 @@ public class AuthService {
                 .message("Email verified successfully")
                 .build();
     }
+
+    public AuthResponse getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElse(null);
+
+        if (user == null) {
+            return AuthResponse.builder()
+                    .success(false)
+                    .message("User not found")
+                    .build();
+        }
+
+        return AuthResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .role(user.getRole().name())
+                .success(true)
+                .build();
+    }
+
+    public AuthResponse resendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElse(null);
+
+        if (user == null) {
+            return AuthResponse.builder()
+                    .success(false)
+                    .message("User not found")
+                    .build();
+        }
+
+        if (user.getEnabled()) {
+            return AuthResponse.builder()
+                    .success(false)
+                    .message("Email is already verified")
+                    .build();
+        }
+
+        // Generate new verification token
+        String verificationToken = jwtService.generateVerificationToken(email);
+        user.setVerificationToken(verificationToken);
+        userRepository.save(user);
+
+        try {
+            emailService.sendVerificationEmail(
+                    user.getEmail(),
+                    user.getUsername(),
+                    verificationToken
+            );
+        } catch (Exception e) {
+            return AuthResponse.builder()
+                    .success(false)
+                    .message("Error sending verification email")
+                    .build();
+        }
+
+        return AuthResponse.builder()
+                .success(true)
+                .message("Verification email sent successfully")
+                .build();
+    }
 }

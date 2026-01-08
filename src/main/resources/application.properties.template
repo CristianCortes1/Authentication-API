@@ -101,3 +101,9 @@ app.contact.email=YOUR_EMAIL
 app.contact.url=YOUR_GITHUB_URL
 app.server.url=http://localhost:${server.port}${server.servlet.context-path}
 
+# ===========================================
+# Frontend URL (for OAuth2 redirect)
+# ===========================================
+# URL of your frontend application for OAuth2 callback
+app.frontend.url=http://localhost:3000
+
